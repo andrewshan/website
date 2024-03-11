@@ -97,15 +97,32 @@ metadata:
     polarismesh.cn/javaagentFrameworkVersion: "hoxton｜2020｜2021 选择对应的版本填入"
 ```
 
+如果是通过 Deployment 进行部署，则需要在 Deployment 部署配置的 spec.template.metadata.annotations 下添加对应的annotations：
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+# 其他部署配置这里忽略
+spec:
+  template:
+    metadata:
+      annotations:
+        polarismesh.cn/javaagent: "true"
+        polarismesh.cn/javaagentVersion: "{填写 polaris-java-agent 的版本}"
+        polarismesh.cn/javaagentFrameworkName: "spring-cloud"
+        polarismesh.cn/javaagentFrameworkVersion: "hoxton｜2020｜2021 选择对应的版本填入"
+```
+
 ### 查看 JavaAgent 是否注入成功
+
+> 通过kubectl确定
+
 
 使用一下命令来验证 `javaagent` 命名空间是否已经正确启用：
 
 ```
 kubectl describe pod {目标业务POD名称} -n {javaagent}
 ```
-
-### 查看服务是否注册到北极星
 
 > 通过日志确定
 
@@ -116,19 +133,40 @@ kubectl describe pod {目标业务POD名称} -n {javaagent}
 
 > 查看北极星控制台确认
 
+登录到北极星控制台，可以看到服务实例已经注册到对应的服务下，切状态为健康。
 
-### 验证限流功能
+### 修改 JavaAgent 的默认配置
 
-> 设置限流规则
+可以通过添加```polarismesh.cn/javaagentConfig```的annotation来修改JavaAgent的默认配置。
 
-> 调用接口触发限流
+> 基于H版的SpringCloud开启优雅上下线功能：
 
-### 验证路由功能
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hoxton-demo
+  annotations:
+    polarismesh.cn/javaagent: "true"
+    polarismesh.cn/javaagentVersion: "{填写 polaris-java-agent 的版本}"
+    polarismesh.cn/javaagentFrameworkName: "spring-cloud"
+    polarismesh.cn/javaagentFrameworkVersion: "hoxton"
+    polarismesh.cn/javaagentConfig: "{\"spring.cloud.polaris.lossless.enabled\": true, \"spring.cloud.polaris.lossless.healthCheckPath\": \"/health\"}"
+```
 
-> 设置路由规则
+如果是通过 Deployment 进行部署，则需要在 Deployment 部署配置的 spec.template.metadata.annotations 下添加对应的annotations：
 
-
-> 不携带特定参数
-
-
-> 携带特定参数
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+# 其他部署配置这里忽略
+spec:
+  template:
+    metadata:
+      annotations:
+        polarismesh.cn/javaagent: "true"
+        polarismesh.cn/javaagentVersion: "{填写 polaris-java-agent 的版本}"
+        polarismesh.cn/javaagentFrameworkName: "spring-cloud"
+        polarismesh.cn/javaagentFrameworkVersion: "hoxton"
+        polarismesh.cn/javaagentConfig: "{\"spring.cloud.polaris.lossless.enabled\": true, \"spring.cloud.polaris.lossless.healthCheckPath\": \"/health\"}"
+```
